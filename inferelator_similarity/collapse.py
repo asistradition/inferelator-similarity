@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import anndata as ad
 from typing import Union
 
@@ -26,9 +25,6 @@ def collapse_genes(
         vprint = print
     else:
         vprint = lambda *x: 0
-
-    if agg_func == 'nonzero':
-        agg_func = _nonzero
 
     # Check and see if it's an expression dataframe
     # Or an AnnData object
@@ -104,26 +100,28 @@ def collapse_genes(
 
     if axis == 0 or axis == 'all':
 
-        _data = _data.T.groupby(
+        _data = _agg_data(
+            _data,
+            agg_func,
             _collapse_line.reindex(
                 _data.columns
             )[MERGE_COL].fillna(
                 _data.columns.to_series()
-            )
-        ).agg(
-            agg_func
-        ).T
+            ),
+            axis=0
+        )
 
     if axis == 1 or axis == 'all':
 
-        _data = _data.groupby(
+        _data = _agg_data(
+            _data,
+            agg_func,
             _collapse_line.reindex(
                 _data.index
             )[MERGE_COL].fillna(
                 _data.index.to_series()
-            )
-        ).agg(
-            agg_func
+            ),
+            axis=1
         )
 
     vprint(f"Merged {expression_data.shape} data to {_data.shape}")
@@ -146,5 +144,33 @@ def collapse_genes(
     return expression_data, _collapse_line
 
 
-def _nonzero(x):
-    return np.sum(x != 0) > 0
+def _agg_data(
+    data,
+    agg_func,
+    grouper,
+    axis=0
+):
+
+    if agg_func == "nonzero" and axis == 1:
+        return _nonzero_data(data, grouper)
+    elif agg_func == "nonzero" and axis == 0:
+        return _nonzero_data(data.T, grouper).T
+
+    elif axis == 1:
+        return data.groupby(grouper).agg(agg_func)
+    elif axis == 0:
+        return data.T.groupby(grouper).agg(agg_func).T
+
+
+def _nonzero_data(
+    data,
+    grouper
+):
+
+    data = (data != 0).groupby(
+        grouper
+    ).agg(
+        'sum'
+    ) > 0
+
+    return data.astype(int)
