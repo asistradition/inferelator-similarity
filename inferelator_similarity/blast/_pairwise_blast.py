@@ -6,6 +6,10 @@ import pandas as pd
 
 from ._blast_wrapper import makeblastdb, BLAST_HEADER, blastn, blastp
 
+IDENT_COL = 'true_ident'
+QSPECIES_COL = 'qspecies'
+SSPECIES_COL = 'sspecies'
+
 def pairwise_blasts(
     species,
     fasta_files,
@@ -96,19 +100,19 @@ def _process_blast(
         data['qseqid'] = _strip_prefs(data['qseqid'])
         data['sseqid'] = _strip_prefs(data['sseqid'])
 
-    data['qspecies'] = qspecies
-    data['sspecies'] = sspecies
+    data[QSPECIES_COL] = qspecies
+    data[SSPECIES_COL] = sspecies
     data[qspecies] = data['qseqid']
     data[sspecies] = data['sseqid']
 
-    data['true_ident'] = data['pident'] * data['length'] / data['qlen']
+    data[IDENT_COL] = data['pident'] * data['length'] / data['qlen']
 
     if all_species is not None:
         for sp in all_species:
             if sp != qspecies and sp != sspecies:
                 data[sp] = ""
 
-        _process_cols = ['qspecies', 'sspecies', 'true_ident']
+        _process_cols = [QSPECIES_COL, SSPECIES_COL, IDENT_COL]
 
         data = data.reindex(
             BLAST_HEADER + _process_cols + all_species,

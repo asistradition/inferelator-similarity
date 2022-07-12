@@ -5,7 +5,8 @@ DEFAULT_EXTRACTORS = {
     'id': '>(.*?) ',
     'gene': 'gene:(.*?) ',
     'transcript': 'transcript:(.*?) ',
-    'gene_biotype': 'gene_biotype:(.*?) '
+    'gene_biotype': 'gene_biotype:(.*?) ',
+    'chromosome': 'chromosome:(.*?) '
 }
 
 RAW = 'FASTA'
