@@ -34,7 +34,7 @@ def collapse_genes(
     elif _is_ad and axis != 0:
         raise ValueError("Cannot merge AnnData on axis 1")
     else:
-        _data = expression_data
+        _data = expression_data.copy()
 
     # Get a table of chromosome IDs if FASTA files are provided
     # And swap qseqid and sseqid for anything that's got no
