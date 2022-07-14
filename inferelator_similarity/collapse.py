@@ -111,6 +111,8 @@ def collapse_genes(
             axis=0
         )
 
+        _data.columns.name = None
+
     if axis == 1 or axis == 'all':
 
         _data = _agg_data(
@@ -123,6 +125,8 @@ def collapse_genes(
             ),
             axis=1
         )
+
+        _data.index.name = None
 
     vprint(f"Merged {expression_data.shape} data to {_data.shape}")
 
