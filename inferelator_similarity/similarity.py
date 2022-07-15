@@ -5,7 +5,7 @@ import collections
 
 from .blast import pairwise_blasts, BLAST_HEADER, IDENT_COL
 from .blast.fasta import fasta_translation_table, translate_blast_table
-from .utils import build_joint_sets
+from .utils import build_joint_sets, SPECIES_COL, GENE_COL, GROUP_COL, group_stats
 
 def similarity_groups_execute():
     """
@@ -234,13 +234,13 @@ def similarity_groups(species: list,
 
     # Turn each group of genes into a separate dataframe
     all_results = [
-        pd.DataFrame(list(group), columns=["Species", "Gene"])
+        pd.DataFrame(list(group), columns=[SPECIES_COL, GENE_COL])
         for group in all_results
     ]
 
     # Add a unique group ID
     for i, r in enumerate(all_results):
-        r['GroupID'] = i
+        r[GROUP_COL] = i
 
     if verbose:
         _group_size = collections.Counter(map(len, all_results))
@@ -257,17 +257,17 @@ def similarity_groups(species: list,
     )
 
     all_gene_results = []
-    group_id_start = all_results['GroupID'].max() + 1
+    group_id_start = all_results[GROUP_COL].max() + 1
 
     for sp, sp_gene_names in species_gene_names.items():
         _add_df = pd.DataFrame(
             sp_gene_names[
-                ~sp_gene_names.isin(all_results['Gene'])
+                ~sp_gene_names.isin(all_results[GENE_COL])
             ],
-            columns=['Gene']
+            columns=[GENE_COL]
         )
-        _add_df['Species'] = sp
-        _add_df['GroupID'] = range(
+        _add_df[SPECIES_COL] = sp
+        _add_df[GROUP_COL] = range(
             group_id_start,
             group_id_start + _add_df.shape[0]
         )
@@ -285,13 +285,13 @@ def similarity_groups(species: list,
     )
 
     if verbose:
-        _perfect_line = all_gene_results.groupby(
-            'GroupID'
-        )['Species'].agg(
-            ['count', 'nunique']
+        _perfect_line = group_stats(
+            all_gene_results
         ) == len(species)
 
-        _perfect_line = _perfect_line.all(axis=1).sum()
+        _perfect_line = _perfect_line.all(
+            axis=1
+        ).sum()
 
         print(
             f"{_perfect_line} groups "
